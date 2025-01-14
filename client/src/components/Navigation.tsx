@@ -1,31 +1,28 @@
-import  { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faHeart } from '@fortawesome/free-regular-svg-icons';
 import { faCartShopping, faHeadset, faGlobe, faMagnifyingGlass, faFire, faChevronLeft, faChevronRight, faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import logo from "../assets/logo.png";
 import { categories } from '../models/Categories';
+import CategoryDropdown from './CategoryDropdown';
+import { products } from '../data/products';
 
 export default function Navigation() {
     const categoriesRef = useRef<HTMLUListElement>(null);
     const [activeCategory, setActiveCategory] = useState<string | null>(null);
+    const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+
     const handleCategoryClick = (category: string) => {
-        if (activeCategory === category) {
-            setActiveCategory(null);
-        } else {
-            setActiveCategory(category);
-        }
-    }
+        setActiveCategory(prevCategory => (prevCategory === category ? null : category));
+    };
+
     const scrollLeft = () => {
-        if (categoriesRef.current) {
-            categoriesRef.current.scrollBy({ left: -200, behavior: 'smooth' });
-        }
+        categoriesRef.current?.scrollBy({ left: -200, behavior: 'smooth' });
     };
 
     const scrollRight = () => {
-        if (categoriesRef.current) {
-            categoriesRef.current.scrollBy({ left: 200, behavior: 'smooth' });
-        }
+        categoriesRef.current?.scrollBy({ left: 200, behavior: 'smooth' });
     };
 
     return (
@@ -67,32 +64,46 @@ export default function Navigation() {
                     </li>
                 </ul>
             </div>
-            <div className="flex items-center w-full ">
-                <ul ref={categoriesRef} className="flex gap-4 items-center w-full mr-6 px-2 text-sm text-black overflow-x-auto whitespace-nowrap scrollbar-hide ">
+            <div className="flex items-center w-full " >
+               
+                <ul ref={categoriesRef} className="flex gap-4 items-center w-full mr-6 px-2 text-sm text-black overflow-x-auto whitespace-nowrap scrollbar-hide">
                     <li className="flex items-center w-fit">
                         <Link to="/" className="w-fit text-center flex gap-1 hover:bg-gray-200 p-2 items-center group">
                             Categories
                             <FontAwesomeIcon icon={faChevronDown} className="group-hover:animate-spinUp" />
-                            </Link>
+                        </Link>
                     </li>
                     {Object.keys(categories.categories).map((category, index) => (
-                        <li key={index} className="flex items-center w-fit ">
-                            <Link to={`/category/${category}`}  onClick={() => handleCategoryClick(category)}
-                                className={`w-fit text-center flex gap-1 hover:bg-gray-200 p-2 items-center ${activeCategory === category ? 'border-b-4 border-black' : ''}`}>
+                        <li key={index} className="flex items-center w-fit "
+                            onMouseEnter={() => setHoveredCategory(category)}
+                            onMouseLeave={() => setHoveredCategory(null)}>
+                            <Link to={`/category/${category}`} onClick={() => handleCategoryClick(category)}
+                                className={`w-fit text-center flex  gap-1 hover:bg-gray-200 p-2 items-center ${activeCategory === category ? 'border-b-4 border-black' : ''}`}
+                                tabIndex={0} role="button">
                                 {category}
                             </Link>
+                          
                         </li>
                     ))}
                 </ul>
-                    <div className="flex  px-2 gap-4  shadow-md">
-                    <button onClick={scrollLeft} className="p-2">
+                <button onClick={scrollLeft} className="p-2">
                     <FontAwesomeIcon icon={faChevronLeft} />
                 </button>
                 <button onClick={scrollRight} className="p-2">
                     <FontAwesomeIcon icon={faChevronRight} />
                 </button>
-                </div>
             </div>
+            <div className="relative bg-white shadow-lg w-full z-50 ">
+               {hoveredCategory && (
+                    <CategoryDropdown
+                        category={hoveredCategory}
+                        subcategories={categories.categories[hoveredCategory]}
+                        products={products}
+                        onMouseEnter={() => setHoveredCategory(hoveredCategory)}
+                        onMouseLeave={() => setHoveredCategory(null)}
+                    />
+                )}
+                </div>
         </nav>
     );
 }
